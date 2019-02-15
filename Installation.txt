@@ -1,0 +1,20 @@
+Installation is a bit awkward from inside MSVS, i.e. you can't do it. 
+
+You have to follow the instructions from https://nazca-design.org/installation/
+and use the Anaconda prompt to install the package. 
+
+Confirm the installation using the pip show command as instructed to find
+'path-to-nazca'
+
+To ensure that the code can be used from inside MSVS you then have to ensure MSVS can see 
+where the code is installed
+
+# Include this command inside your code to make sure that MSVS can see the code
+# If you add the 'path-to-nazca' to the MSVS search paths it can also find it
+sys.path.append('path-to-nazca')
+
+You also need to install the following packages to ensure it runs without errors
+Babel
+pywin32
+
+R. Sheehan 15 - 2 - 2019
