@@ -78,7 +78,8 @@ def Example_4():
     # be directly transferred to the exported GDS file. Nazca calls a building block a ‘Cell’ object, because it will be 
     # exported as a cell in GDS.
 
-    # This example creates a building block from a 1x2 MMI and three in-out waveguides. Next, the new block is put several times in the mask.
+    # This example creates a building block from a 1x2 MMI and three in-out waveguides. 
+    # Next, the new block is put several times in the mask.
 
     FUNC_NAME = ".Example_4()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -359,7 +360,7 @@ def Example_11():
         print(ERR_STATEMENT)
 
 def Example_12():
-    # layout of a defined MZM structure using the demofab devices
+    # use of text on masks with Nazca
 
     FUNC_NAME = ".Example_12()" # use this in exception handling messages
     ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
@@ -381,5 +382,148 @@ def Example_12():
 
         nazca.export_gds()
         
+    except Exception:
+        print(ERR_STATEMENT)
+
+def Example_13():
+
+    # https://nazca-design.org/crate-bb-using-polygon/
+    # create a building block from a list of points (x, y) in a custom mask layer
+    # building  block is defined as a cell via the ‘with’ statement
+    # Inside the cell we create a Polygon object from the points which is put in the cell
+    # To be able to connect to our new building block we need to define pins via Pin objects, which we also put in the cell
+    # Note that according to the Nazca convention (for chain connections) pins point outwards from a building block. 
+    # To show the pins in the GDS we call put_stub.
+    # R. Sheehan 26 - 4 - 2019
+
+    FUNC_NAME = ".Example_13()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:        
+        # create a layer and define its accuracy
+        nazca.add_layer(name='layer3', layer=3, accuracy=0.001)
+
+        # create a building block from Polygon points
+        with nazca.Cell('building_block') as bb:
+            bb_body = [(5.0, -5.0), (5.0, -1.0), (0.0, -1.0), (0.0, 1.0),
+                       (5.0, 1.0), (5.0, 5.0), (35.0, 5.0), (35.0, 3.5),
+                       (40.0, 3.5), (40.0, 1.5), (35.0, 1.5), (35.0, -1.5),
+                       (40.0, -1.5), (40.0, -3.5), (35.0, -3.5), (35.0, -5.0)]
+
+            nazca.Polygon(points=bb_body, layer='layer3').put(0)
+
+            nazca.Pin('a0').put(0, 0, 180)
+            nazca.Pin('b0').put(40, 2.5, 0)
+            nazca.Pin('b1').put(40, -2.5, 0)
+            nazca.put_stub()
+
+        bb.put(0)
+        bb.put('b1')
+
+        nazca.export_gds()
+
+    except Exception:
+        print(ERR_STATEMENT)
+
+def Example_14():
+
+    # https://nazca-design.org/crate-bb-using-polygon/
+    # create a building block from a list of points (x, y) in a custom mask layer
+    # building  block is defined as a cell via the ‘with’ statement
+    # Inside the cell we create a Polygon object from the points which is put in the cell
+    # To be able to connect to our new building block we need to define pins via Pin objects, which we also put in the cell
+    # Note that according to the Nazca convention (for chain connections) pins point outwards from a building block. 
+    # To show the pins in the GDS we call put_stub.
+    
+    # This is the same as example 13, except now
+    # Use predefined polygon generating functions from the Nazca geometries module
+
+    # bounding box can be put around the cell to better visualize and/or extend connection options of the building block
+    
+    # R. Sheehan 26 - 4 - 2019
+
+    FUNC_NAME = ".Example_14()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:   
+        import nazca.geometries as geom
+
+        # create a layer and define its accuracy
+        nazca.add_layer(name='layer3', layer=3, accuracy=0.001)
+
+        # create a building block from predefined geometries
+        with nazca.Cell('building_block') as bb:
+            bb_io = geom.box(length=5, width=2)
+            bb_body = geom.box(length=30, width=10)
+
+            nazca.Polygon(points=bb_io, layer='layer3').put(0)
+            nazca.Polygon(points=bb_body, layer='layer3').put(5)
+            nazca.Polygon(points=bb_io, layer='layer3').put(35, 2.5)
+            nazca.Polygon(points=bb_io, layer='layer3').put(35, -2.5)
+
+            nazca.Pin('a0').put(0, 0, 180)
+            nazca.Pin('b0').put(40, 2.5, 0)
+            nazca.Pin('b1').put(40, -2.5, 0)
+            nazca.put_stub()
+
+            # put bounding box around the structure
+            nazca.put_boundingbox('org', length=40, width=10)
+
+        bb.put(0)
+        bb.put('b1')
+
+        nazca.export_gds()
+
+    except Exception:
+        print(ERR_STATEMENT)
+
+def Example_15():
+    # source: https://nazca-design.org/implement-a-cross-section/
+    # In this example they show how to generate a multi-layer structure
+    # add layers to cross-section, define layers accuracy and grow in x-direction. 
+    # The outcome is a cross-section with three layers that can be used for drawing e.g. waveguides in a mask.
+    # R. Sheehan 26 - 4 - 2019
+
+    FUNC_NAME = ".Example_15()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        # add layers to xsection (automatically add the xsection)
+        nazca.add_layer2xsection(xsection='xs1', layer=1, accuracy=0.001)
+        nazca.add_layer2xsection(xsection='xs1', layer=2, accuracy=0.001, growx=4)
+        nazca.add_layer2xsection(xsection='xs1', layer=3, accuracy=0.001, growx=10)
+
+        # draw waveguide in created xsection
+        nazca.strt(length=100, width=2, xs='xs1').put(0)
+
+        nazca.export_gds()
+    except Exception:
+        print(ERR_STATEMENT)
+
+def Example_16():
+    # source: https://nazca-design.org/create_a_hierarchical_design/
+    # Nazca uses the Python with statement to help define a Nazca Cell, which becomes a 
+    # gds cell upon gds export. The name keyword of Cell becomes the gds cell name. 
+    # The indentation under with determines which lines belong to the Cell context.
+    # R. Sheehan 26 - 4 - 2019
+
+    FUNC_NAME = ".Example_16()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        with nazca.Cell(name = 'Cell_A') as cella:
+            nazca.taper(length=10, width1=1, width2=2.5).put(0)
+
+        with nazca.Cell(name='Cell_B') as cellb:
+            nazca.bend(angle=90).put(0)
+            cella.put()
+
+        with nazca.Cell(name='Cell_C') as cellc:
+            nazca.strt(10).put(0)
+            cellb.put()
+            cella.put(0, 10)
+
+        nazca.export_gds(cellc)
+
     except Exception:
         print(ERR_STATEMENT)
