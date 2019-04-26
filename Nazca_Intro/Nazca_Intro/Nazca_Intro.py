@@ -9,6 +9,7 @@ import re
 # Homepage: https://nazca-design.org/
 # Manual: https://nazca-design.org/manual/
 # Tutorials: https://nazca-design.org/tutorials/
+# General Index: https://nazca-design.org/manual/genindex.html
 # R. Sheehan 15 - 2 - 2019
 
 # Have to tell Visual Studio where the Nazca package is located to ensure it works
